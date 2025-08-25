@@ -1,37 +1,40 @@
+'use client'
+
 import Image from "next/image";
-import navigator from "react";
-import axios from 'axios';
+
 
 export default function Home() {
   
 	//Defaults coords to Orlando 
-	const city = "Orlando";
-	const location = {lat: 28.538336, 
-					  lon: -81.379234}
+	var city = "Orlando";
+	var location = {lat: 28.538336, 
+					lon: -81.379234}
 
+	//function to get user's city based on coordinates
+	const getUserCity = async (lat, lon) => {
+
+		var requestOptions = {
+  			method: 'GET',
+		};
+
+		const response = await fetch(`https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lon}&apiKey=${process.env.NEXT_PUBLIC_REVERSE_GEOCODING_API_KEY}`, requestOptions)
+  		.catch(error => console.log('error', error));
+
+		const data = await response.json();
+		city = data.features[0].properties.city;
+	};
+
+	
 	if('geolocation' in navigator){
 		
 		navigator.geolocation.getCurrentPosition(position => {
-			location.lat = position.coords.lat;
-			location.lon = position.coords.lon
+			location.lat = position.coords.latitude;
+			location.lon = position.coords.longitude;
 		});
 
-		getUserCity();
+		getUserCity(location.lat, location.lon);
 	}
-	
-	const getUserCity = async () => {
-		const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${location.lat}&lon=${location.lon}&format=json`, {
-      		headers: {
-        			'User-Agent': 'Clear Cast', // Nominatim requires this!
-       				'Accept-Language': 'en',
-     				},
-		}).catch(e => {
-			console.log(e);
-		});
 
-		const data = await response.json();
-		console.log(data);
-		city = data.address.city;
-	};
+	
 	
 }
